@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1646310954 source:f:\²¢ÐÐ\test\lab-arm-2\main.cpp
+	<iostream>
+	<sys/time.h>
+	<stdio.h>
+	<unistd.h>
+
