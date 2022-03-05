@@ -5,3 +5,9 @@
 	<stdio.h>
 	<unistd.h>
 
+1646317202 source:f:\²¢ÐÐ\parallel-programming\lab1\lab-arm-2\main.cpp
+	<iostream>
+	<sys/time.h>
+	<stdio.h>
+	<unistd.h>
+

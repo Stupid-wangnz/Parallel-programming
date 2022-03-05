@@ -4,3 +4,10 @@
 	<windows.h>
 	<stdlib.h>
 
+1646466903 source:f:\²¢ÐÐ\parallel-programming\lab1\lab1-1\main.cpp
+	<iostream>
+	<windows.h>
+	<stdlib.h>
+	<cstdlib>
+	<ctime>
+
