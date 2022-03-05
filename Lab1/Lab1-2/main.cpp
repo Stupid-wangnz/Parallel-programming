@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-    int n=1000;
+    int n=5000;
 
 
     cout<<"数组规模:"<<n<<endl;
