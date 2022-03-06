@@ -9,7 +9,7 @@ using namespace std;
 int main()
 {
 
-    int n=8192;
+    int n=1024;
 
     int*a=new int[n];
     int sum=0;

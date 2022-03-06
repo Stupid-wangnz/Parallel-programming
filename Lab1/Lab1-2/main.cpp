@@ -1,75 +1,86 @@
 #include <iostream>
-
-#include<sys/time.h>
-#include<cstdlib>
+#include<windows.h>
 #include<stdlib.h>
 #include<ctime>
+#include<cstdlib>
 using namespace std;
+
+
+
+
+
 
 int main()
 {
-    int n=500;
 
+    int n=1024*512;
+    cout<<"求和数组规模："<<n<<endl;
+    int*a=new int[n];
+    int sum=0;
 
-    cout<<"数组规模:"<<n<<endl;
-    int**A=new int*[n];
-    for(int i=0;i<n;i++)
-        A[i]=new int[n];
+    long long head,tail,freq,times=0;
+    QueryPerformanceFrequency((LARGE_INTEGER *)&freq );
 
-    int *a=new int[n];
 
     for(int i=0;i<n;i++)
     {
         srand(time(NULL));
-        a[i]=rand()%10+1;
 
-        for(int j=0;j<n;j++)
-            {
-                srand(time(NULL));
-                A[i][j]=rand()%100+1;
-            }
+        a[i]=rand()%100+1;
     }
-    int *sum=new int[n];
-    double time=0;
-    struct timeval tv_begin,tv_end;
+    int c=100;//循环次数
 
-    int c=100;
-    for(int k=c;k>=0;k--)
+
+    for(int k=c;k>0;k--)
     {
+        QueryPerformanceCounter((LARGE_INTEGER *)&head);
+        for (int i = 0; i < n; i++)
+            sum += a[i];
+        QueryPerformanceCounter((LARGE_INTEGER *)&tail );
+        times+=tail-head;
+    }
 
-        gettimeofday(&tv_begin,NULL);
-        for(int i=0;i<n;i++)
-        {
-            sum[i]=0;
-            for(int j=0;j<n;j++)
-                sum[i]+=A[j][i]*a[j];
 
+    cout<<"sum:"<<sum/c<<endl;
+    cout<<"平凡算法时间："<<times*1000.0/freq/c<<"ms"<<endl;
+
+    int sum1 = 0, sum2 = 0;
+    times=0;
+    for(int k=c;k>0;k--)
+    {
+        QueryPerformanceCounter((LARGE_INTEGER *)&head);
+
+        for (int i = 0;i < n; i += 2) {
+            sum1 += a[i];
+            sum2 += a[i + 1];
         }
-        gettimeofday(&tv_end,NULL);
-        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+        QueryPerformanceCounter((LARGE_INTEGER *)&tail );
+        times+=tail-head;
+
     }
 
+    sum = sum1 + sum2;
+    cout<<"sum:"<<sum/c<<endl;
+    cout<<"多链路式算法时间："<<times*1000.0/freq/c<<"ms"<<endl;
 
-    cout<<"Col:"<<time/c<<"ms"<<endl;
 
 
-    time=0;
-    for(int k=c;k>=0;k--)
+
+
+
+    times=0;
+
+    for(int k=c;k>0;k--)
     {
-        gettimeofday(&tv_begin,NULL);
-        for(int i=0;i<n;i++)
-            sum[i]=0;
-        for(int j=0;j<n;j++)
-            for(int i=0;i<n;i++)
-                sum[i]=A[j][i]*a[j];
-
-        gettimeofday(&tv_end,NULL);
-        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
-
+        QueryPerformanceCounter((LARGE_INTEGER *)&head);
+        for (int m = n; m > 1; m /= 2) // log(n)个步骤
+            for (int i = 0; i < m / 2; i++)
+                a[i] = a[i * 2] + a[i * 2 + 1];
+        QueryPerformanceCounter((LARGE_INTEGER *)&tail );
+        times+=tail-head;
     }
 
-
-    cout<<"Row:"<<time/c<<"ms";
-
+    cout<<"sum:"<<a[0]<<endl;
+    cout<<"二重循环算法时间："<<times*1000.0/freq/c<<"ms"<<endl;
     return 0;
 }
