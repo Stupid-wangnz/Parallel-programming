@@ -34,7 +34,7 @@ int main()
     struct timeval tv_begin,tv_end;
 
     int c=100;
-    for(int k=c;k>=0;k--)
+    for(int k=c;k>0;k--)
     {
 
         gettimeofday(&tv_begin,NULL);
@@ -54,7 +54,7 @@ int main()
 
 
     time=0;
-    for(int k=c;k>=0;k--)
+    for(int k=c;k>0;k--)
     {
         gettimeofday(&tv_begin,NULL);
         for(int i=0;i<n;i++)
