@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-    int n=5000;
+    int n=500;
 
 
     cout<<"数组规模:"<<n<<endl;
@@ -30,18 +30,14 @@ int main()
             }
     }
     int *sum=new int[n];
-    long head,tail;
+    double time=0;
     struct timeval tv_begin,tv_end;
-    //gettimeofday(&tv_begin, NULL);
-    //head=tv_begin.tv_usec;
-    clock_t start,ed;
 
-    start=clock();
-    int c=100;//循环规模
+    int c=100;
     for(int k=c;k>=0;k--)
     {
 
-
+        gettimeofday(&tv_begin,NULL);
         for(int i=0;i<n;i++)
         {
             sum[i]=0;
@@ -49,30 +45,31 @@ int main()
                 sum[i]+=A[j][i]*a[j];
 
         }
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    //gettimeofday(&tv_end,NULL);
 
-    //tail=tv_end.tv_usec;
-    ed=clock();
-    cout<<"Col:"<<(ed-start)*1000.0/c/CLOCKS_PER_SEC<<"ms"<<endl;
 
-    //gettimeofday(&tv_begin, NULL);
-    //head=tv_begin.tv_usec;
-    start=clock();
+    cout<<"Col:"<<time/c<<"ms"<<endl;
+
+
+    time=0;
     for(int k=c;k>=0;k--)
     {
-
+        gettimeofday(&tv_begin,NULL);
         for(int i=0;i<n;i++)
             sum[i]=0;
         for(int j=0;j<n;j++)
             for(int i=0;i<n;i++)
                 sum[i]=A[j][i]*a[j];
 
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+
     }
-    ed=clock();
-    //gettimeofday(&tv_end,NULL);
-    //tail=tv_end.tv_usec;
-    cout<<"Row:"<<(ed-start)*1000.0/c/CLOCKS_PER_SEC<<"ms";
+
+
+    cout<<"Row:"<<time/c<<"ms";
 
     return 0;
 }

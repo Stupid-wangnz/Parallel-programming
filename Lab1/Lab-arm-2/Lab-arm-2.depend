@@ -5,9 +5,10 @@
 	<stdio.h>
 	<unistd.h>
 
-1646317202 source:f:\并行\parallel-programming\lab1\lab-arm-2\main.cpp
+1646480031 source:f:\并行\parallel-programming\lab1\lab-arm-2\main.cpp
 	<iostream>
 	<sys/time.h>
 	<stdio.h>
-	<unistd.h>
+	<ctime>
+	<stdlib.h>
 

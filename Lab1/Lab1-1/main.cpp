@@ -7,7 +7,7 @@ using namespace std;
 
 int main()
 {
-    int n=5000;
+    int n=2000;
 
     cout<<"数组规模："<<n<<endl;
     int**A=new int*[n];
@@ -29,20 +29,20 @@ int main()
     }
     int *sum=new int[n];
 
-    long long head ,tail,freq;
+    long long head ,tail,freq,time=0;
 
     QueryPerformanceFrequency((LARGE_INTEGER *)&freq);
 
-    QueryPerformanceCounter((LARGE_INTEGER *)&head);
 
 
-    int c=100;//重复执行的次数，减小误差
+
+    int c=10;//重复执行的次数，减小误差
 
 
     for(int k=c;k>=0;k--)
     {
 
-
+        QueryPerformanceCounter((LARGE_INTEGER *)&head);
         for(int i=0;i<n;i++)
         {
             sum[i]=0;
@@ -50,27 +50,30 @@ int main()
                 sum[i]+=A[j][i]*a[j];
 
         }
-
+        QueryPerformanceCounter((LARGE_INTEGER *)&tail );
+        time+=tail-head;
     }
-    QueryPerformanceCounter((LARGE_INTEGER *)&tail );
 
 
-    cout<<"Col:"<<(tail-head)*1000.0/freq/c<<"ms"<<endl;
+    cout<<"Col:"<<time*1000.0/freq/c<<"ms"<<endl;
     QueryPerformanceFrequency((LARGE_INTEGER *)&freq );
-    QueryPerformanceCounter((LARGE_INTEGER *)&head);
+    time=0;
     for(int k=c;k>=0;k--)
     {
 
-
+        QueryPerformanceCounter((LARGE_INTEGER *)&head);
 
         for(int i=0;i<n;i++)
             sum[i]=0;
         for(int j=0;j<n;j++)
             for(int i=0;i<n;i++)
                 sum[i]=A[j][i]*a[j];
+
+        QueryPerformanceCounter((LARGE_INTEGER *)&tail );
+        time+=tail-head;
     }
-    QueryPerformanceCounter((LARGE_INTEGER *)&tail );
-    cout<<"Row:"<<(tail-head)*1000.0/freq/c<<"ms";
+
+    cout<<"Row:"<<time*1000.0/freq/c<<"ms";
 
     return 0;
 }

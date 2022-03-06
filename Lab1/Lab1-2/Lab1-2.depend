@@ -4,7 +4,10 @@
 	<windows.h>
 	<stdlib.h>
 
-1646398139 source:f:\并行\parallel-programming\lab1\lab1-2\main.cpp
+1646534704 source:f:\并行\parallel-programming\lab1\lab1-2\main.cpp
 	<iostream>
 	<sys/time.h>
+	<cstdlib>
+	<stdlib.h>
+	<ctime>
 
