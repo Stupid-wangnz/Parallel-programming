@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1648616918 source:f:\²¢ÐÐ\lab2\simd1\main.cpp
+	<iostream>
+	<stdio.h>
+	<pmmintrin.h>
+	<stdlib.h>
+	<algorithm>
+	<windows.h>
+	<time.h>
+
