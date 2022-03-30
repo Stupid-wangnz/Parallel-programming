@@ -8,3 +8,13 @@
 	<windows.h>
 	<time.h>
 
+1648629132 source:f:\²¢ÐÐ\parallel-programming\lab2\simd1\main.cpp
+	<iostream>
+	<stdio.h>
+	<pmmintrin.h>
+	<stdlib.h>
+	<algorithm>
+	<windows.h>
+	<time.h>
+	<malloc.h>
+

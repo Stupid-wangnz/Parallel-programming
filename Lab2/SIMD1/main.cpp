@@ -45,11 +45,9 @@ void Simd_SSE(float A[Arr_size][Arr_size])
         __m128 vt;
         float temp[4]={A[k][k],A[k][k],A[k][k],A[k][k]};
         vt=_mm_loadu_ps(temp);
-        //float32x4_t vt=vmovq_n_f32(A[k][k]);
         int j;
         for(j=k+1;j+4<=Arr_size;j+=4)
         {
-            //float32x4_t va=vld1q_f32(&A[k][j]);
             __m128 va=_mm_loadu_ps(&A[k][j]);
             va=_mm_div_ps(va,vt);
             _mm_storeu_ps(&A[k][j],va);
@@ -63,16 +61,11 @@ void Simd_SSE(float A[Arr_size][Arr_size])
         {
             float temp1[4]={A[i][k],A[i][k],A[i][k],A[i][k]};
             __m128 vaik=_mm_loadu_ps(temp1);
-
-            //float32x4_t vaik=vmovq_n_f32(A[i][k]);
             for(j=k+1;j+4<=Arr_size;j+=4)
             {
-                //float32x4_t vakj=vld1q_f32(&A[k][j]);
                 __m128 vakj=_mm_loadu_ps(&A[k][j]);
                 __m128 vaij=_mm_loadu_ps(&A[i][j]);
-                //float32x4_t vaij=vld1q_f32(&A[i][j]);
                 __m128 vx=_mm_mul_ps(vakj,vaik);
-                //float32x4_t vx=vmulq_f32(vakj,vaik);
                 vaij=_mm_sub_ps(vaij,vx);
                 _mm_storeu_ps(&A[i][j],vaij);
 
@@ -94,7 +87,48 @@ void Simd_SSE_Aligned(float A[Arr_size][Arr_size])
         __m128 vt;
         float temp[4]__attribute__((aligned(16)))={A[k][k],A[k][k],A[k][k],A[k][k]};
         vt=_mm_load_ps(temp);
+        int j;
+        for(j=k+1;j+4<=Arr_size;j+=4)
+        {
+            float temp1[4]__attribute__((aligned(16)))={A[k][j],A[k][j+1],A[k][j+2],A[k][j+3]};
+            __m128 va=_mm_load_ps(temp1);
+            va=_mm_div_ps(va,vt);
+            _mm_storeu_ps(&A[k][j],va);
+        }
+        for(j;j<Arr_size;j++)
+            A[k][j]/=A[k][k];
+        A[k][k]=1.0;
+        for(int i=k+1;i<Arr_size;i++)
+        {
+            float temp1[4]__attribute__((aligned(16)))={A[i][k],A[i][k],A[i][k],A[i][k]};
+            __m128 vaik=_mm_load_ps(temp1);
+            for(j=k+1;j+4<=Arr_size;j+=4)
+            {
+                float tempkj[4]__attribute__((aligned(16)))={A[k][j],A[k][j+1],A[k][j+2],A[k][j+3]};
+                __m128 vakj=_mm_load_ps(tempkj);
+                float tempij[4]__attribute__((aligned(16)))={A[i][j],A[i][j+1],A[i][j+2],A[i][j+3]};
+                __m128 vaij=_mm_load_ps(tempij);
+                __m128 vx=_mm_mul_ps(vakj,vaik);
+                vaij=_mm_sub_ps(vaij,vx);
+                _mm_storeu_ps(&A[i][j],vaij);
 
+            }
+            for(j;j<Arr_size;j++)
+                A[i][j]-=A[k][j]*A[i][k];
+            A[i][k]=0;
+        }
+    }
+}
+
+void Simd_SSE_Aligned1(float A[Arr_size][Arr_size])
+{
+
+    for(int k=0;k<Arr_size;k++)
+    {
+
+        __m128 vt;
+        float temp[4]__attribute__((aligned(16)))={A[k][k],A[k][k],A[k][k],A[k][k]};
+        vt=_mm_load_ps(temp);
         int j;
         for(j=k+1;j+4<=Arr_size;j+=4)
         {
@@ -109,9 +143,8 @@ void Simd_SSE_Aligned(float A[Arr_size][Arr_size])
 
         for(int i=k+1;i<Arr_size;i++)
         {
-            float temp1[4]={A[i][k],A[i][k],A[i][k],A[i][k]};
-            __m128 vaik=_mm_loadu_ps(temp1);
-
+            float temp1[4]__attribute__((aligned(16)))={A[i][k],A[i][k],A[i][k],A[i][k]};
+            __m128 vaik=_mm_load_ps(temp1);
             for(j=k+1;j+4<=Arr_size;j+=4)
             {
                 __m128 vakj=_mm_loadu_ps(&A[k][j]);
@@ -127,6 +160,7 @@ void Simd_SSE_Aligned(float A[Arr_size][Arr_size])
         }
     }
 }
+
 
 
 void reset(float A[Arr_size][Arr_size],float B[Arr_size][Arr_size])
@@ -173,19 +207,39 @@ int main()
     reset(Gauss_arr,Copy_arr);
     long long head,tail,freq;
     double time=0;
+
+    //串行高斯消元
     QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
     QueryPerformanceCounter((LARGE_INTEGER*)&head);
-
     Serial(Copy_arr);
     QueryPerformanceCounter((LARGE_INTEGER*)&tail);
     time=(tail-head)*1000.0/freq;
     cout<<time<<endl;
 
+    //不对齐的高斯消元
+    reset(Gauss_arr,Copy_arr);
     QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
     QueryPerformanceCounter((LARGE_INTEGER*)&head);
-    Simd_SSE(Gauss_arr);
+    Simd_SSE(Copy_arr);
     QueryPerformanceCounter((LARGE_INTEGER*)&tail);
     time=(tail-head)*1000.0/freq;
-    cout<<time<<endl;;
+    cout<<time<<endl;
 
+    //将数据全部对齐后的高斯消元
+    reset(Gauss_arr,Copy_arr);
+    QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+    QueryPerformanceCounter((LARGE_INTEGER*)&head);
+    Simd_SSE_Aligned(Copy_arr);
+    QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+    time=(tail-head)*1000.0/freq;
+    cout<<time<<endl;
+
+    //部分数据对齐后的高斯消元
+    reset(Gauss_arr,Copy_arr);
+    QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+    QueryPerformanceCounter((LARGE_INTEGER*)&head);
+    Simd_SSE_Aligned1(Copy_arr);
+    QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+    time=(tail-head)*1000.0/freq;
+    cout<<time<<endl;
 }
