@@ -41,7 +41,7 @@ void Simd(float** A)
         {
             float32x4_t va=vld1q_f32(&A[k][j]);
 
-            va=c(va,vt);
+            va=vdivq_f32(va,vt);
             vst1q_f32(&A[k][j],va);
 
         }
@@ -78,7 +78,7 @@ void Simd_Aligned(float** A)
         {
             float32x4_t va=vld1q_f32(&A[k][j]);
 
-            va=c(va,vt);
+            va=vdivq_f32(va,vt);
             vst1q_f32(&A[k][j],va);
 
         }
@@ -144,7 +144,7 @@ void Run()
     float* testArray[Arr_size];
     for(int i=0;i<Arr_size;i++)
        {
-            Aligned_Gauss_arr[i]=(float*)_aligned_malloc(Arr_size*4,128);
+            Aligned_Gauss_arr[i]=(float*)aligned_alloc(Arr_size*4,128);
             testArray[i]=&Aligned_Gauss_arr[i][0];
        }
 
@@ -152,7 +152,7 @@ void Run()
         for(int j=0;j<Arr_size;j++)
             Aligned_Gauss_arr[i][j]=Gauss_arr[i][j];
 
-    long dnesc=0£»
+    long dnesc=0;
     struct timespec sts,ets;
     time_t dsec;
     for(int i=0;i<20;i++){
@@ -177,6 +177,8 @@ void Run()
     printf("%llu.%09llus\n",dsec,dnesc);
     cout<<endl;
 
+
+
     for(int i=0;i<20;i++){
         reset(Aligned_Gauss_arr,Copy_arr);
         timespec_get(&sts,TIME_UTC);
@@ -187,6 +189,9 @@ void Run()
     }
     printf("%llu.%09llus\n",dsec,dnesc);
     cout<<endl;
+
+    for(int i=0;i<Arr_size;i++)
+        aligned_free((void*)testArray);
 }
 int main()
 {
