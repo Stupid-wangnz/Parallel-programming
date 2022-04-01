@@ -293,7 +293,7 @@ void Run()
 
     time=0;
     for(int i=0;i<C;i++){
-        reset(Gauss_arr,Copy_arr);
+        reset(Aligned_Gauss_arr,Copy_arr);
         QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
         QueryPerformanceCounter((LARGE_INTEGER*)&head);
         Simd_SSE_Aligned(Copy_arr);
