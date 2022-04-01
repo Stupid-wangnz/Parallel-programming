@@ -73,8 +73,14 @@ void Simd_Aligned(float** A)
     for(int k=0;k<Arr_size;k++)
     {
         float32x4_t vt=vmovq_n_f32(A[k][k]);
-        int j;
-        for(j=k+1;j+4<=Arr_size;j+=4)
+        int j=k+1;
+
+        while(j%4!=0){
+            A[k][j]/=A[k][k];
+            j++;
+        }
+
+        for(;j+4<=Arr_size;j+=4)
         {
             float32x4_t va=vld1q_f32(&A[k][j]);
 
@@ -89,7 +95,13 @@ void Simd_Aligned(float** A)
         for(int i=k+1;i<Arr_size;i++)
         {
             float32x4_t vaik=vmovq_n_f32(A[i][k]);
-            for(j=k+1;j+4<=Arr_size;j+=4)
+            j=k+1;
+            while(j%4!=0){
+                A[i][j]-=A[k][j]*A[i][k];
+                j++;
+            }
+
+            for(;j+4<=Arr_size;j+=4)
             {
                 float32x4_t vakj=vld1q_f32(&A[k][j]);
                 float32x4_t vaij=vld1q_f32(&A[i][j]);
