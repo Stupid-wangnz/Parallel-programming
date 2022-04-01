@@ -52,12 +52,12 @@ void Row(int**A,int*a,int*sum,int c,int n){
         time+=tail-head;
     }
 
-    cout<<"Row:"<<time*1000.0/freq/c<<"ms";
+    cout<<"Row:"<<time*1000.0/freq/c<<"ms"<<endl;
 
 }
-int main()
+
+void Proc(int n)
 {
-    int n=1000;
 
     cout<<"数组规模："<<n<<endl;
     int**A=new int*[n];
@@ -86,9 +86,18 @@ int main()
 
 
 
-    int c=100;//重复执行的次数，减小误差
-    //Col(A,a,sum,c,n);
+    int c=10;//重复执行的次数，减小误差
+    Col(A,a,sum,c,n);
     Row(A,a,sum,c,n);
+}
+
+int main()
+{
+    int n=500;
+
+    //for(;n<20000;n+=500)
+        Proc(12000);
+
 
     return 0;
 }

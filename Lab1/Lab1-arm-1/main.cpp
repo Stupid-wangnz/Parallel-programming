@@ -6,10 +6,9 @@
 #include<ctime>
 using namespace std;
 
-int main()
-{
-    int n=500;
 
+void Proc(int n)
+{
 
     cout<<"数组规模"<<n<<endl;
     int**A=new int*[n];
@@ -69,7 +68,16 @@ int main()
     }
 
 
-    cout<<"Row:"<<time/c<<"ms";
+    cout<<"Row:"<<time/c<<"ms"<<endl;
+}
+
+
+int main()
+{
+    int n=50;
+
+
+    Proc(n);
 
     return 0;
 }

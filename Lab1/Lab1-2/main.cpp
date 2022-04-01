@@ -24,11 +24,9 @@ void reset(int*a,int*b,int n)
         b[i]=a[i];
 
 }
-
-
-int main()
+void Proc(int n)
 {
-    int n=1024*2;
+
     cout<<"求和数组规模："<<n<<endl;
     int*a=new int[n];
     int sum=0;
@@ -43,7 +41,7 @@ int main()
 
         a[i]=rand()%100+1;
     }
-    int c=100;//循环次数
+    int c=10;//循环次数
 
 
     for(int k=c;k>0;k--)
@@ -109,8 +107,15 @@ int main()
 
     cout<<"sum:"<<b[0]<<endl;
     cout<<"二重循环算法时间："<<times*1000.0/freq/c<<"ms"<<endl;
+
+}
+
+int main()
+{
+    int n=1024;
+
+    for(;n<=1024*1024*8;n*=2)
+        Proc(n);
     return 0;
-
-
 
 }

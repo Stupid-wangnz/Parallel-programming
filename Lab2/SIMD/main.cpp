@@ -4,9 +4,9 @@
 #include<time.h>
 
 using namespace std;
-const int Arr_size=16;
+int Arr_size=16;
 
-void Serial(float A[Arr_size][Arr_size])
+void Serial(float** A)
 {
     for(int k=0;k<Arr_size;k++)
     {
@@ -30,7 +30,7 @@ void Serial(float A[Arr_size][Arr_size])
     }
 }
 
-void Simd(float A[Arr_size][Arr_size])
+void Simd(float** A)
 {
 
     for(int k=0;k<Arr_size;k++)
@@ -41,7 +41,7 @@ void Simd(float A[Arr_size][Arr_size])
         {
             float32x4_t va=vld1q_f32(&A[k][j]);
 
-            va=vdivq_f32(va,vt);
+            va=c(va,vt);
             vst1q_f32(&A[k][j],va);
 
         }
@@ -67,16 +67,21 @@ void Simd(float A[Arr_size][Arr_size])
         }
     }
 }
-void reset(float A[Arr_size][Arr_size],float B[Arr_size][Arr_size])
+void reset(float **A,float** B)
 {
 
     for(int i=0;i<Arr_size;i++)
         for(int j=0;j<Arr_size;j++)
             B[i][j]=A[i][j];
 }
-int main()
+void Run()
 {
-    float Gauss_arr[Arr_size][Arr_size]{};
+    cout<<"__________________________________"<<endl;
+    cout<<Arr_size<<endl;
+
+    float **Gauss_arr=new float*[Arr_size];
+    for(int i=0;i<Arr_size;i++)
+        Gauss_arr[i]=new float[Arr_size];
     for(int i=0;i<Arr_size;i++)
     {
         for(int j=0;j<i;j++)
@@ -90,7 +95,10 @@ int main()
             for(int j=0;j<Arr_size;j++)
                 Gauss_arr[i][j]+=Gauss_arr[k][j];
 
-    float Copy_arr[Arr_size][Arr_size]{};
+    float **Copy_arr=new float*[Arr_size];
+    for(int i=0;i<Arr_size;i++)
+        Copy_arr[i]=new float[Arr_size];
+
     reset(Gauss_arr,Copy_arr);
     struct timespec sts,ets;
     timespec_get(&sts,TIME_UTC);
@@ -107,4 +115,13 @@ int main()
     dnesc =ets.tv_nsec-sts.tv_nsec;
     printf("%llu.%09llus\n",dsec,dnesc);
 
+}
+int main()
+{
+    for(int i=0;i<15;i++)
+    {
+        Run();
+
+        Arr_size+=16;
+    }
 }
