@@ -1,7 +1,10 @@
 #include <iostream>
 #include<arm_neon.h>
 #include<stdio.h>
-#include<time.h>
+#include<ctime>
+#include<stdlib.h>
+#include<cstdlib>
+#include<sys/time.h>
 
 using namespace std;
 int Arr_size=16;
@@ -156,7 +159,7 @@ void Run()
     float* testArray[Arr_size];
     for(int i=0;i<Arr_size;i++)
        {
-            Aligned_Gauss_arr[i]=(float*)aligned_alloc(Arr_size*4,128);
+            Aligned_Gauss_arr[i]=(float*)aligned_alloc(128,Arr_size*4);
             testArray[i]=&Aligned_Gauss_arr[i][0];
        }
 
@@ -164,50 +167,44 @@ void Run()
         for(int j=0;j<Arr_size;j++)
             Aligned_Gauss_arr[i][j]=Gauss_arr[i][j];
 
-    long dnesc=0;
-    struct timespec sts,ets;
-    time_t dsec;
+    double time=0;
+    struct timeval tv_begin,tv_end;
     for(int i=0;i<20;i++){
         reset(Gauss_arr,Copy_arr);
-        timespec_get(&sts,TIME_UTC);
+       gettimeofday(&tv_begin,NULL);
         Serial(Copy_arr);
-        timespec_get(&ets,TIME_UTC);
-        dsec+=ets.tv_sec-sts.tv_sec;
-        dnesc+=ets.tv_nsec-sts.tv_nsec;
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    printf("%llu.%09llus\n",dsec,dnesc);
-    cout<<endl;
+    cout<<time/20<<endl;
 
-   for(int i=0;i<20;i++){
+    time=0;
+  for(int i=0;i<20;i++){
         reset(Gauss_arr,Copy_arr);
-        timespec_get(&sts,TIME_UTC);
+       gettimeofday(&tv_begin,NULL);
         Simd(Copy_arr);
-        timespec_get(&ets,TIME_UTC);
-        dsec+=ets.tv_sec-sts.tv_sec;
-        dnesc+=ets.tv_nsec-sts.tv_nsec;
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    printf("%llu.%09llus\n",dsec,dnesc);
-    cout<<endl;
+    cout<<time/20<<endl;
 
 
-
+    time=0;
     for(int i=0;i<20;i++){
-        reset(Aligned_Gauss_arr,Copy_arr);
-        timespec_get(&sts,TIME_UTC);
+        reset(Gauss_arr,Copy_arr);
+       gettimeofday(&tv_begin,NULL);
         Simd_Aligned(Copy_arr);
-        timespec_get(&ets,TIME_UTC);
-        dsec+=ets.tv_sec-sts.tv_sec;
-        dnesc+=ets.tv_nsec-sts.tv_nsec;
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    printf("%llu.%09llus\n",dsec,dnesc);
-    cout<<endl;
+    cout<<time/20<<endl;
 
     for(int i=0;i<Arr_size;i++)
-        aligned_free((void*)testArray);
+        free((void*)testArray[i]);
 }
 int main()
 {
-    for(int i=0;i<15;i++)
+    for(int i=0;i<40;i++)
     {
         Run();
 

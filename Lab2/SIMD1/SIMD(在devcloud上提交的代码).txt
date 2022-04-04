@@ -3,11 +3,13 @@
 #include<pmmintrin.h>
 #include<stdlib.h>
 #include<algorithm>
-#include<windows.h>
 #include<time.h>
 #include<malloc.h>
 #include <immintrin.h>
-
+#include<ctime>
+#include<stdlib.h>
+#include<cstdlib>
+#include<sys/time.h>
 
 using namespace std;
 
@@ -46,8 +48,8 @@ void Simd_SSE(float** A)
     {
 
         __m128 vt;
-        float temp[4]={A[k][k],A[k][k],A[k][k],A[k][k]};
-        vt=_mm_loadu_ps(temp);
+        
+        vt=_mm_set1_ps(A[k][k]);
         int j;
         for(j=k+1;j+4<=Arr_size;j+=4)
         {
@@ -62,8 +64,8 @@ void Simd_SSE(float** A)
 
         for(int i=k+1;i<Arr_size;i++)
         {
-            float temp1[4]={A[i][k],A[i][k],A[i][k],A[i][k]};
-            __m128 vaik=_mm_loadu_ps(temp1);
+            
+            __m128 vaik=_mm_set1_ps(A[i][k]);
             for(j=k+1;j+4<=Arr_size;j+=4)
             {
                 __m128 vakj=_mm_loadu_ps(&A[k][j]);
@@ -83,13 +85,12 @@ void Simd_SSE(float** A)
 void Simd_SSE_Aligned(float** A)
 {
     /*
-    ¶ÔÆëÏÂµÄSIMD SSEÖ¸Áî²Ù×÷
+    å¯¹é½ä¸‹çš„SIMD SSEæŒ‡ä»¤æ“ä½œ
     */
     for(int k=0;k<Arr_size;k++)
     {
         __m128 vt;
-        float temp[4]__attribute__((aligned(16)))={A[k][k],A[k][k],A[k][k],A[k][k]};
-        vt=_mm_load_ps(temp);
+        vt=_mm_set1_ps(A[k][k]);
         int j=k+1;
 
         while(j%4!=0){
@@ -109,8 +110,8 @@ void Simd_SSE_Aligned(float** A)
         A[k][k]=1.0;
         for(int i=k+1;i<Arr_size;i++)
         {
-            float temp1[4]__attribute__((aligned(16)))={A[i][k],A[i][k],A[i][k],A[i][k]};
-            __m128 vaik=_mm_load_ps(temp1);
+
+            __m128 vaik=_mm_set1_ps(A[i][k]);
             j=k+1;
             while(j%4!=0){
                 A[i][j]-=A[i][k]*A[k][j];
@@ -140,8 +141,7 @@ void Simd_SSE_Aligned1(float** A)
     {
 
         __m128 vt;
-        float temp[4]__attribute__((aligned(16)))={A[k][k],A[k][k],A[k][k],A[k][k]};
-        vt=_mm_load_ps(temp);
+        vt=_mm_set1_ps(A[k][k]);
         int j;
         for(j=k+1;j+4<=Arr_size;j+=4)
         {
@@ -156,8 +156,7 @@ void Simd_SSE_Aligned1(float** A)
 
         for(int i=k+1;i<Arr_size;i++)
         {
-            float temp1[4]__attribute__((aligned(16)))={A[i][k],A[i][k],A[i][k],A[i][k]};
-            __m128 vaik=_mm_load_ps(temp1);
+            __m128 vaik=_mm_set1_ps(A[i][k]);
             for(j=k+1;j+4<=Arr_size;j+=4)
             {
                 __m128 vakj=_mm_loadu_ps(&A[k][j]);
@@ -180,8 +179,8 @@ void Simd_AVX(float** A)
     {
 
         __m256 vt;
-        float temp[8]={A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k]};
-        vt=_mm256_loadu_ps(temp);
+        
+        vt=_mm256_set1_ps(A[k][k]);
         int j;
         for(j=k+1;j+8<=Arr_size;j+=8)
         {
@@ -196,8 +195,7 @@ void Simd_AVX(float** A)
 
         for(int i=k+1;i<Arr_size;i++)
         {
-            float temp1[8]={A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k]};
-            __m256 vaik=_mm256_loadu_ps(temp1);
+            __m256 vaik=_mm256_set1_ps(A[i][k]);
             for(j=k+1;j+8<=Arr_size;j+=8)
             {
                 __m256 vakj=_mm256_loadu_ps(&A[k][j]);
@@ -221,8 +219,7 @@ void Simd_AVX_Aligned(float** A)
     {
 
         __m256 vt;
-        float temp[8]__attribute__((aligned(32)))={A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k]};
-        vt=_mm256_load_ps(temp);
+        vt=_mm256_set1_ps(A[k][k]);
         int j=k+1;
 
          while(j%8!=0){
@@ -275,9 +272,7 @@ void Simd_AVX512(float** A)
     {
 
         //__m512 vt;
-        float temp[16]={A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k]};
-
-        __m512 vt=_mm512_load_ps(temp);
+        __m512 vt=_mm512_set1_ps(A[k][k]);
 
         int j=k+1;
         for(j=k+1;j+16<=Arr_size;j+=16)
@@ -294,8 +289,7 @@ void Simd_AVX512(float** A)
 
         for(int i=k+1;i<Arr_size;i++)
         {
-            float temp1[16]={A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k]};
-            __m512 vaik=_mm512_loadu_ps(temp1);
+            __m512 vaik=_mm512_set1_ps(A[k][k]);
             for(j=k+1;j+16<=Arr_size;j+=16)
             {
                 __m512 vakj=_mm512_loadu_ps(&A[k][j]);
@@ -319,13 +313,7 @@ void Simd_AVX512_Aligned(float** A)
     for(int k=0;k<Arr_size;k++)
     {
 
-
-
-        //float temp[16]__attribute__((aligned(64)))={A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k],A[k][k]};
-
         __m512 vt=_mm512_set1_ps(A[k][k]);
-        cout<<1;
-
         int j=k+1;
 
          while(j%16!=0){
@@ -347,7 +335,7 @@ void Simd_AVX512_Aligned(float** A)
 
         for(int i=k+1;i<Arr_size;i++)
         {
-            float temp1[16]__attribute__((aligned(64)))={A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k],A[i][k]};
+        
             __m512  vaik=_mm512_set1_ps(A[k][k]);
 
             j=k+1;
@@ -407,7 +395,7 @@ void Run()
     float* testArray[Arr_size];
     for(int i=0;i<Arr_size;i++)
        {
-            Aligned_Gauss_arr[i]=(float*)_aligned_malloc(Arr_size*4,512);
+            Aligned_Gauss_arr[i]=(float*)aligned_alloc(64,Arr_size*4);
             testArray[i]=&Aligned_Gauss_arr[i][0];
        }
 
@@ -422,123 +410,114 @@ void Run()
         Copy_arr[i]=new float[Arr_size];
 
     reset(Gauss_arr,Copy_arr);
-    long long head,tail,freq;
     double time=0;
+    struct timeval tv_begin,tv_end;
+
+    //ä¸²è¡Œé«˜æ–¯æ¶ˆå…ƒ
     for(int i=0;i<C;i++){
-    //´®ÐÐ¸ßË¹ÏûÔª
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+       reset(Gauss_arr,Copy_arr);
+       gettimeofday(&tv_begin,NULL);
         Serial(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    cout<<time/C<<"   ";
+    cout<<time/20<<endl;
+
+
     time=0;
-    //²»¶ÔÆëµÄ¸ßË¹ÏûÔª
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+    //ä¸å¯¹é½çš„é«˜æ–¯æ¶ˆå…ƒ
+   for(int i=0;i<C;i++){
+       reset(Gauss_arr,Copy_arr);
+       gettimeofday(&tv_begin,NULL);
         Simd_SSE(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
+    cout<<time/20<<endl;
 
-    cout<<time/C<<"   ";
-    //½«Êý¾ÝÈ«²¿¶ÔÆëºóµÄ¸ßË¹ÏûÔª
 
     time=0;
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Aligned_Gauss_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+    //å°†æ•°æ®å…¨éƒ¨å¯¹é½åŽçš„é«˜æ–¯æ¶ˆå…ƒ
+
+   for(int i=0;i<C;i++){
+       reset(Gauss_arr,Aligned_Gauss_arr);
+       gettimeofday(&tv_begin,NULL);
         Simd_SSE_Aligned(Aligned_Gauss_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    cout<<time/C<<"   ";
+    cout<<time/20<<endl;
 
-    //²¿·ÖÊý¾Ý¶ÔÆëºóµÄ¸ßË¹ÏûÔª
+
     time=0;
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-        Simd_SSE_Aligned1(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
 
-    }
-    cout<<time/C<<"   ";
+
     time=0;
     //AVX256
     for(int i=0;i<C;i++){
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+       reset(Gauss_arr,Copy_arr);
+       gettimeofday(&tv_begin,NULL);
         Simd_AVX(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    cout<<time/C<<"   ";
+    cout<<time/20<<endl;
 
+
+    time=0;
      //AVX256 aligned
-     time=0;
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Aligned_Gauss_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+     for(int i=0;i<C;i++){
+       reset(Gauss_arr,Aligned_Gauss_arr);
+       gettimeofday(&tv_begin,NULL);
         Simd_AVX_Aligned(Aligned_Gauss_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    cout<<time/C<<"   ";
+    cout<<time/20<<endl;
+
 
     time=0;
     //AVX512
     for(int i=0;i<C;i++){
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+       reset(Gauss_arr,Copy_arr);
+       gettimeofday(&tv_begin,NULL);
         Simd_AVX512(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    cout<<time/C<<"   ";
+    cout<<time/20<<endl;
+
+
+    time=0;
 
      //AVX512 aligned
-     time=0;
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Aligned_Gauss_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+     for(int i=0;i<C;i++){
+       reset(Gauss_arr,Aligned_Gauss_arr);
+       gettimeofday(&tv_begin,NULL);
         Simd_AVX512_Aligned(Aligned_Gauss_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
-    cout<<time/C<<"   "<<endl;
+    cout<<time/20<<endl;
+
+
+    time=0;
 
     cout<<"_______________________"<<endl;
 
 
     for(int i=0;i<Arr_size;i++){
-        _aligned_free((void*)testArray[i]);
+        free((void*)testArray[i]);
     }
 }
 
 int main()
 {
 
-    for(int i=0;i<20;i++)
+    for(int i=0;i<40;i++)
     {
         Run();
         Arr_size+=16;
     }
 }
+
