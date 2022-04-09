@@ -12,7 +12,7 @@
 using namespace std;
 
 
-int Arr_size=64;
+int Arr_size=160;
 const int C=20;
 
 void Serial(float** A)
@@ -424,17 +424,17 @@ void Run()
     reset(Gauss_arr,Copy_arr);
     long long head,tail,freq;
     double time=0;
-    for(int i=0;i<C;i++){
-    //串行高斯消元
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-        Serial(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
-    }
-    cout<<time/C<<"   ";
+//    for(int i=0;i<C;i++){
+//    串行高斯消元
+//        reset(Gauss_arr,Copy_arr);
+//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+//        Serial(Copy_arr);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+//        time+=(tail-head)*1000.0/freq;
+//
+//    }
+//    cout<<time/C<<"   ";
     time=0;
     //不对齐的高斯消元
     for(int i=0;i<C;i++){
@@ -447,83 +447,83 @@ void Run()
     }
 
     cout<<time/C<<"   ";
-    //将数据全部对齐后的高斯消元
+//    //将数据全部对齐后的高斯消元
+//
+//    time=0;
+//    for(int i=0;i<C;i++){
+//        reset(Gauss_arr,Aligned_Gauss_arr);
+//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+//        Simd_SSE_Aligned(Aligned_Gauss_arr);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+//        time+=(tail-head)*1000.0/freq;
+//
+//    }
+//    cout<<time/C<<"   ";
+//
+//    //部分数据对齐后的高斯消元
+//    time=0;
+//    for(int i=0;i<C;i++){
+//        reset(Gauss_arr,Copy_arr);
+//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+//        Simd_SSE_Aligned1(Copy_arr);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+//        time+=(tail-head)*1000.0/freq;
+//
+//    }
+//    cout<<time/C<<"   ";
+//    time=0;
+//    //AVX256
+//    for(int i=0;i<C;i++){
+//        reset(Gauss_arr,Copy_arr);
+//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+//        Simd_AVX(Copy_arr);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+//        time+=(tail-head)*1000.0/freq;
+//
+//    }
+//    cout<<time/C<<"   ";
+//
+//     //AVX256 aligned
+//     time=0;
+//    for(int i=0;i<C;i++){
+//        reset(Gauss_arr,Aligned_Gauss_arr);
+//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+//        Simd_AVX_Aligned(Aligned_Gauss_arr);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+//        time+=(tail-head)*1000.0/freq;
+//
+//    }
+//    cout<<time/C<<"   ";
 
-    time=0;
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Aligned_Gauss_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-        Simd_SSE_Aligned(Aligned_Gauss_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
-    }
-    cout<<time/C<<"   ";
-
-    //部分数据对齐后的高斯消元
-    time=0;
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-        Simd_SSE_Aligned1(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
-    }
-    cout<<time/C<<"   ";
-    time=0;
-    //AVX256
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-        Simd_AVX(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
-    }
-    cout<<time/C<<"   ";
-
-     //AVX256 aligned
-     time=0;
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Aligned_Gauss_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-        Simd_AVX_Aligned(Aligned_Gauss_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
-    }
-    cout<<time/C<<"   ";
-
-    time=0;
-    //AVX512
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Copy_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-        Simd_AVX512(Copy_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
-    }
-    cout<<time/C<<"   ";
-
-     //AVX512 aligned
-     time=0;
-    for(int i=0;i<C;i++){
-        reset(Gauss_arr,Aligned_Gauss_arr);
-        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-        Simd_AVX512_Aligned(Aligned_Gauss_arr);
-        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-        time+=(tail-head)*1000.0/freq;
-
-    }
-    cout<<time/C<<"   "<<endl;
+//    time=0;
+//    //AVX512
+//    for(int i=0;i<C;i++){
+//        reset(Gauss_arr,Copy_arr);
+//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+//        Simd_AVX512(Copy_arr);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+//        time+=(tail-head)*1000.0/freq;
+//
+//    }
+//    cout<<time/C<<"   ";
+//
+//     //AVX512 aligned
+//     time=0;
+//    for(int i=0;i<C;i++){
+//        reset(Gauss_arr,Aligned_Gauss_arr);
+//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+//        Simd_AVX512_Aligned(Aligned_Gauss_arr);
+//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+//        time+=(tail-head)*1000.0/freq;
+//
+//    }
+//    cout<<time/C<<"   "<<endl;
 
     cout<<"_______________________"<<endl;
 
@@ -536,7 +536,7 @@ void Run()
 int main()
 {
 
-    for(int i=0;i<20;i++)
+    for(int i=0;i<1;i++)
     {
         Run();
         Arr_size+=16;
