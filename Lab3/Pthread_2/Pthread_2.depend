@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1650460029 source:f:\²¢ÐÐ\parallel-programming\lab3\pthread_2\main.cpp
+	<iostream>
+	<pthread.h>
+	<semaphore.h>
+

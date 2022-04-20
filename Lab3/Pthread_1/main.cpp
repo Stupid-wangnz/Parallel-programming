@@ -1,12 +1,17 @@
 #include <iostream>
 #include<pthread.h>
-
+#include<semaphore.h>
 
 using namespace std;
 
-
 int Arr_size=12;
+int NUM_THREADS=4;
 float **A;
+
+//信号量
+sem_t sem_main;
+sem_t sem_workerstart;
+sem_t sem_workerend;
 
 void reset(float** G)
 {
@@ -17,21 +22,25 @@ void reset(float** G)
 }
 
 typedef struct{
-    int k;//消去的轮次
     int t_id;//线程id
 }threadParam_t;
 
 void *threadFunc(void*param){
     threadParam_t*p=(threadParam_t*)param;
 
-    int k=p->k;
     int t_id=p->t_id;
-    int i=k+t_id+1;//计算任务
+    for(int k=0;k<Arr_size;k++){
+        sem_wait(&sem_workerstart);
 
-    for(int j=k+1;j<Arr_size;j++)
-       A[i][j]=A[i][j]-A[i][k]*A[k][j];
+        for(int i=k+1+t_id;i<Arr_size;i+=NUM_THREADS){
+            for(int j=k+1;j<Arr_size;j++)
+                A[i][j]=A[i][j]-A[i][k]*A[k][j];
 
-    A[i][k]=0;
+            A[i][k]=0;
+        }
+        sem_post(&sem_main);
+        sem_wait(&sem_workerend);
+    }
     pthread_exit(NULL);
 
 }
@@ -67,33 +76,47 @@ void Serial()
 
 }
 
-void Dynamic_thread()
+void Static_thread()
 {
 
+    sem_init(&sem_main,0,0);
+    sem_init(&sem_workerstart,0,0);
+    sem_init(&sem_workerend,0,0);
+
+    pthread_t*handles=new pthread_t[NUM_THREADS];
+    threadParam_t*param=new threadParam_t[NUM_THREADS];
+    for(int i=0;i<NUM_THREADS;i++){
+        param[i].t_id=i;
+        pthread_create(&handles[i],NULL,threadFunc,&param[i]);
+    }
     for(int k=0;k<Arr_size;k++){
         for(int j=k+1;j<Arr_size;j++)
             A[k][j]/=A[k][k];
 
         A[k][k]=1;
 
-        int worker_count=Arr_size-1-k;
-        //动态创建线程
-        pthread_t*handles=new pthread_t[worker_count];
-        threadParam_t*param=new threadParam_t[worker_count];
+        for(int i=0;i<NUM_THREADS;i++)
+            sem_post(&sem_workerstart);
 
-        for(int i=0;i<worker_count;i++){
-            param[i].k=k;
-            param[i].t_id=i;
-        }
+        for(int i=0;i<NUM_THREADS;i++)
+            sem_wait(&sem_main);
 
-        for(int i=0;i<worker_count;i++){
-            pthread_create(&handles[i],NULL,threadFunc,&param[i]);
-        }
-        for(int i=0;i<worker_count;i++){
-            pthread_join(handles[i],NULL);
-        }
+        for(int i=0;i<NUM_THREADS;i++)
+            sem_post(&sem_workerend);
     }
 
+    for(int i=0;i<NUM_THREADS;i++)
+        pthread_join(handles[i],NULL);
+
+    sem_destroy(&sem_main);
+    sem_destroy(&sem_workerend);
+    sem_destroy(&sem_workerstart);
+
+    for(int i=0;i<Arr_size;i++){
+        for(int j=0;j<Arr_size;j++)
+            cout<<A[i][j]<<" ";
+        cout<<endl;
+    }
 }
 
 int main()
@@ -123,7 +146,7 @@ int main()
     reset(Gauss_arr);
     Serial();
     reset(Gauss_arr);
-    Dynamic_thread();
+    Static_thread();
     reset(Gauss_arr);
 
 

@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1650452382 source:f:\²¢ÐÐ\parallel-programming\lab3\pthread\main.cpp
+	<iostream>
+	<pthread.h>
+
