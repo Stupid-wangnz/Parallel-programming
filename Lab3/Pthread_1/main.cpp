@@ -1,17 +1,28 @@
 #include <iostream>
 #include<pthread.h>
 #include<semaphore.h>
-
+#include<ctime>
+#include<stdlib.h>
+#include<cstdlib>
+#include<sys/time.h>
 using namespace std;
 
-int Arr_size=12;
-int NUM_THREADS=4;
+int Arr_size=16;
+int NUM_THREADS=8;
 float **A;
 
-//�ź���
 sem_t sem_main;
-sem_t sem_workerstart;
-sem_t sem_workerend;
+sem_t *sem_workerstart;
+sem_t *sem_workerend;
+
+//信号量
+//sem_t sem_leader;
+sem_t *sem_Divsion;
+sem_t *sem_Elimination;
+
+//信号量
+pthread_barrier_t barrier_Divsion;
+pthread_barrier_t barrier_Elimination;
 
 void reset(float** G)
 {
@@ -22,15 +33,15 @@ void reset(float** G)
 }
 
 typedef struct{
-    int t_id;//�߳�id
+    int t_id;//Ïß³Ìid
 }threadParam_t;
 
-void *threadFunc(void*param){
+void *threadFunc1(void*param){
     threadParam_t*p=(threadParam_t*)param;
 
     int t_id=p->t_id;
     for(int k=0;k<Arr_size;k++){
-        sem_wait(&sem_workerstart);
+        sem_wait(&sem_workerstart[t_id]);
 
         for(int i=k+1+t_id;i<Arr_size;i+=NUM_THREADS){
             for(int j=k+1;j<Arr_size;j++)
@@ -39,10 +50,78 @@ void *threadFunc(void*param){
             A[i][k]=0;
         }
         sem_post(&sem_main);
-        sem_wait(&sem_workerend);
+        sem_wait(&sem_workerend[t_id]);
     }
     pthread_exit(NULL);
 
+}
+
+void *threadFunc2(void*param){
+    threadParam_t*p=(threadParam_t*)param;
+
+    int t_id=p->t_id;
+    for(int k=0;k<Arr_size;k++){
+
+    //t_id为0时，线程做除法，让其余线程阻塞
+        if(t_id==0){
+            for(int j=k+1;j<Arr_size;j++)
+                A[k][j]/=A[k][k];
+            A[k][k]=1;
+
+         for(int i=0;i<NUM_THREADS-1;i++)
+                sem_post(&sem_Divsion[i]);
+        }
+        else{
+            sem_wait(&sem_Divsion[t_id-1]);
+        }
+
+        for(int i=k+1+t_id;i<Arr_size;i+=NUM_THREADS){
+            for(int j=k+1;j<Arr_size;j++)
+                A[i][j]=A[i][j]-A[i][k]*A[k][j];
+
+            A[i][k]=0;
+        }
+
+        if(t_id==0){
+            for(int i=0;i<NUM_THREADS-1;i++)
+                sem_wait(&sem_Elimination[i]);
+        }
+        else{
+            sem_post(&sem_Elimination[t_id-1]);
+        }
+
+    }
+    pthread_exit(NULL);
+}
+
+void *threadFunc3(void*param){
+    threadParam_t*p=(threadParam_t*)param;
+
+    int t_id=p->t_id;
+
+    for(int k=0;k<Arr_size;k++){
+
+    //t_id为0时，线程做除法，让其余线程阻塞
+        if(t_id==0){
+            for(int j=k+1;j<Arr_size;j++)
+                A[k][j]/=A[k][k];
+            A[k][k]=1;
+
+        }
+
+        pthread_barrier_wait(&barrier_Divsion);
+
+        for(int i=k+1+t_id;i<Arr_size;i+=NUM_THREADS){
+            for(int j=k+1;j<Arr_size;j++)
+                A[i][j]=A[i][j]-A[i][k]*A[k][j];
+
+            A[i][k]=0;
+        }
+
+        pthread_barrier_wait(&barrier_Elimination);
+
+    }
+    pthread_exit(NULL);
 }
 
 void Serial()
@@ -68,26 +147,23 @@ void Serial()
 
     }
 
-    for(int i=0;i<Arr_size;i++){
-        for(int j=0;j<Arr_size;j++)
-            cout<<A[i][j]<<" ";
-        cout<<endl;
-    }
-
 }
 
-void Static_thread()
+void Static_thread_1()
 {
+    sem_workerend=new sem_t[NUM_THREADS];
+    sem_workerstart=new sem_t[NUM_THREADS];
 
     sem_init(&sem_main,0,0);
-    sem_init(&sem_workerstart,0,0);
-    sem_init(&sem_workerend,0,0);
-
+    for(int i=0;i<NUM_THREADS;i++){
+        sem_init(&sem_workerstart[i],0,0);
+        sem_init(&sem_workerend[i],0,0);
+    }
     pthread_t*handles=new pthread_t[NUM_THREADS];
     threadParam_t*param=new threadParam_t[NUM_THREADS];
     for(int i=0;i<NUM_THREADS;i++){
         param[i].t_id=i;
-        pthread_create(&handles[i],NULL,threadFunc,&param[i]);
+        pthread_create(&handles[i],NULL,threadFunc1,&param[i]);
     }
     for(int k=0;k<Arr_size;k++){
         for(int j=k+1;j<Arr_size;j++)
@@ -96,30 +172,68 @@ void Static_thread()
         A[k][k]=1;
 
         for(int i=0;i<NUM_THREADS;i++)
-            sem_post(&sem_workerstart);
+            sem_post(&sem_workerstart[i]);
 
         for(int i=0;i<NUM_THREADS;i++)
             sem_wait(&sem_main);
 
         for(int i=0;i<NUM_THREADS;i++)
-            sem_post(&sem_workerend);
+            sem_post(&sem_workerend[i]);
     }
 
     for(int i=0;i<NUM_THREADS;i++)
         pthread_join(handles[i],NULL);
 
     sem_destroy(&sem_main);
-    sem_destroy(&sem_workerend);
-    sem_destroy(&sem_workerstart);
+    for(int i=0;i<NUM_THREADS;i++){
+        sem_destroy(&sem_workerend[i]);
+        sem_destroy(&sem_workerstart[i]);
+    }
 
-    for(int i=0;i<Arr_size;i++){
-        for(int j=0;j<Arr_size;j++)
-            cout<<A[i][j]<<" ";
-        cout<<endl;
+}
+
+void Static_thread_2()
+{
+    sem_Divsion=new sem_t[Arr_size-1];
+    sem_Elimination=new sem_t[Arr_size-1];
+    for(int i=0;i<Arr_size-1;i++){
+        sem_init(&sem_Divsion[i],0,0);
+        sem_init(&sem_Elimination[i],0,0);
+    }
+    pthread_t*handles=new pthread_t[NUM_THREADS];
+    threadParam_t*param=new threadParam_t[NUM_THREADS];
+    for(int i=0;i<NUM_THREADS;i++){
+        param[i].t_id=i;
+        pthread_create(&handles[i],NULL,threadFunc2,&param[i]);
+    }
+
+    for(int i=0;i<NUM_THREADS;i++)
+        pthread_join(handles[i],NULL);
+    for(int i=0;i<Arr_size-1;i++){
+        sem_destroy(&sem_Divsion[i]);
+        sem_destroy(&sem_Elimination[i]);
     }
 }
 
-int main()
+void Static_thread_3()
+{
+    pthread_barrier_init(&barrier_Divsion,NULL,NUM_THREADS);
+    pthread_barrier_init(&barrier_Elimination,NULL,NUM_THREADS);
+
+    pthread_t*handles=new pthread_t[NUM_THREADS];
+    threadParam_t*param=new threadParam_t[NUM_THREADS];
+    for(int i=0;i<NUM_THREADS;i++){
+        param[i].t_id=i;
+        pthread_create(&handles[i],NULL,threadFunc3,&param[i]);
+    }
+
+    for(int i=0;i<NUM_THREADS;i++)
+        pthread_join(handles[i],NULL);
+
+    pthread_barrier_destroy(&barrier_Divsion);
+    pthread_barrier_destroy(&barrier_Elimination);
+}
+void Run()
 {
     A=new float*[Arr_size];
     for(int i=0;i<Arr_size;i++)
@@ -143,14 +257,71 @@ int main()
             for(int j=0;j<Arr_size;j++)
                 Gauss_arr[i][j]+=Gauss_arr[k][j];
 
+    double time=0;
+    struct timeval tv_begin,tv_end;
+    for(int i=0;i<3;i++){
+        reset(Gauss_arr);
+        gettimeofday(&tv_begin,NULL);
+        Serial();
+        gettimeofday(&tv_end,NULL);
+
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+    }
+    cout<<time/3<<"ms"<<endl;
+    time=0;
+
     reset(Gauss_arr);
-    Serial();
+
+    for(int i=0;i<3;i++){
+        reset(Gauss_arr);
+        gettimeofday(&tv_begin,NULL);
+
+        Static_thread_1();
+        gettimeofday(&tv_end,NULL);
+
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+    }
+    cout<<time/3<<"ms"<<endl;
+    time=0;
+
     reset(Gauss_arr);
-    Static_thread();
+
+    for(int i=0;i<3;i++){
+        reset(Gauss_arr);
+        gettimeofday(&tv_begin,NULL);
+        Static_thread_2();
+        gettimeofday(&tv_end,NULL);
+
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+    }
+    cout<<time/3<<"ms"<<endl;
+    time=0;
+
     reset(Gauss_arr);
 
 
+    for(int i=0;i<3;i++){
+        reset(Gauss_arr);
+        gettimeofday(&tv_begin,NULL);
+        Static_thread_3();
+        gettimeofday(&tv_end,NULL);
 
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+    }
+    cout<<time/3<<"ms"<<endl;
+    time=0;
+
+    reset(Gauss_arr);
+
+    return ;
+}
+int main(){
+
+    for(int i=0;i<8;i++){
+        cout<<Arr_size<<endl;
+        Run();
+        Arr_size*=2;
+    }
 
     return 0;
 }

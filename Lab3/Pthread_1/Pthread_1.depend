@@ -1,6 +1,10 @@
 # depslib dependency file v1.0
-1650453748 source:f:\并行\parallel-programming\lab3\pthread_1\main.cpp
+1650782226 source:f:\并行\parallel-programming\lab3\pthread_1\main.cpp
 	<iostream>
 	<pthread.h>
 	<semaphore.h>
+	<ctime>
+	<stdlib.h>
+	<cstdlib>
+	<sys/time.h>
 
