@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1651665942 source:f:\²¢ÐÐ\parallel-programming\lab3\pthread_x86_simd\main.cpp
+	<iostream>
+	<pthread.h>
+	<semaphore.h>
+	<ctime>
+	<cstdlib>
+	<windows.h>
+	<time.h>
+

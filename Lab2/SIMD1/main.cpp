@@ -424,17 +424,17 @@ void Run()
     reset(Gauss_arr,Copy_arr);
     long long head,tail,freq;
     double time=0;
-//    for(int i=0;i<C;i++){
-//    串行高斯消元
-//        reset(Gauss_arr,Copy_arr);
-//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-//        Serial(Copy_arr);
-//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-//        time+=(tail-head)*1000.0/freq;
-//
-//    }
-//    cout<<time/C<<"   ";
+    for(int i=0;i<C;i++){
+    //串行高斯消元
+        reset(Gauss_arr,Copy_arr);
+        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+        Serial(Copy_arr);
+        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+        time+=(tail-head)*1000.0/freq;
+
+    }
+    cout<<time/C<<"   ";
     time=0;
     //不对齐的高斯消元
     for(int i=0;i<C;i++){
@@ -473,18 +473,18 @@ void Run()
 //
 //    }
 //    cout<<time/C<<"   ";
-//    time=0;
-//    //AVX256
-//    for(int i=0;i<C;i++){
-//        reset(Gauss_arr,Copy_arr);
-//        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
-//        QueryPerformanceCounter((LARGE_INTEGER*)&head);
-//        Simd_AVX(Copy_arr);
-//        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
-//        time+=(tail-head)*1000.0/freq;
-//
-//    }
-//    cout<<time/C<<"   ";
+    time=0;
+    //AVX256
+    for(int i=0;i<C;i++){
+        reset(Gauss_arr,Copy_arr);
+        QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+        QueryPerformanceCounter((LARGE_INTEGER*)&head);
+        Simd_AVX(Copy_arr);
+        QueryPerformanceCounter((LARGE_INTEGER*)&tail);
+        time+=(tail-head)*1000.0/freq;
+
+    }
+    cout<<time/C<<"   ";
 //
 //     //AVX256 aligned
 //     time=0;
@@ -536,7 +536,7 @@ void Run()
 int main()
 {
 
-    for(int i=0;i<1;i++)
+    for(int i=0;i<20;i++)
     {
         Run();
         Arr_size+=16;

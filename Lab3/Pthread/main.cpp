@@ -11,7 +11,7 @@ using namespace std;
 
 int Arr_size=12;
 float **A;
-int MAXTHREADs=4;
+int MAXTHREADs=8;
 void reset(float** G)
 {
 

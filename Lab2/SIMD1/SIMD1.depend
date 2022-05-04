@@ -8,7 +8,7 @@
 	<windows.h>
 	<time.h>
 
-1649476347 source:f:\并行\parallel-programming\lab2\simd1\main.cpp
+1651666605 source:f:\并行\parallel-programming\lab2\simd1\main.cpp
 	<iostream>
 	<stdio.h>
 	<pmmintrin.h>

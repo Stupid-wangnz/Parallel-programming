@@ -1,268 +1,213 @@
 #include <iostream>
-#include<fstream>
-#include<string>
-#include<sstream>
+#include<arm_neon.h>
 #include<stdio.h>
 #include<ctime>
 #include<stdlib.h>
 #include<cstdlib>
 #include<sys/time.h>
-#include<arm_neon.h>
+
 using namespace std;
+int Arr_size=16;
 
-bool Finish(int*A,int n2)
+void Serial(float** A)
 {
-    for(int i=0;i<n2;i++)
-        if(A[i])
-            return 0;
-
-    return 1;
-}
-
-int FindTheMax(short*A,int n)
-{
-
-    for(int i=0;i<n;i++)
-        if(A[i])
-            return i;
-    return -1;
-}
-
-void XY(short*A,short*B,int n)
-{
-    for(int i=0;i<n;i++)
-        B[i]=A[i]^B[i];
-
-}
-void XY1(short*A,short*B,int n)
-{
-    int i;
-    for(i=0;i+4<=n;i+=4)
-        {
-            int16x4_t a=vld1_s16(&A[i]);
-            int16x4_t b=vld1_s16(&B[i]);
-            b=veor_s16(a,b);
-            vst1_s16(&B[i],b);
-        }
-    while(i%4!=0){
-        B[i]=A[i]^B[i];
-        i++;
-    }
-
-}
-void XY2(short*A,short*B,int n)
-{
-    int i;
-    for(i=0;i+8<=n;i+=8)
-        {
-            int16x8_t a=vld1q_s16(&A[i]);
-            int16x8_t b=vld1q_s16(&B[i]);
-            b=veorq_s16(a,b);
-            vst1q_s16(&B[i],b);
-        }
-    while(i%8!=0){
-        B[i]=A[i]^B[i];
-        i++;
-    }
-}
-
-void reset(short**a,short**A,short**b,short**B,int n,int n2,int*record,int*r,int*p,int*pc)
-{
-    for(int i=0;i<n;i++)
-        for(int j=0;j<n;j++)
-            A[i][j]=a[i][j];
-
-    for(int i=0;i<n2;i++)
-        for(int j=0;j<n;j++)
-            B[i][j]=b[i][j];
-
-    for(int i=0;i<n;i++)
-        r[i]=record[i];
-    for(int i=0;i<n2;i++)
-        pc[i]=p[i];
-}
-int main()
-{
-
-
-    ifstream infile1("/home/data/Groebner/2_254_106_53/1.txt",ios::in);
-    if(!infile1){
-        cout<<"not open!";
-        return 0;
-    }
-    ifstream infile2("/home/data/Groebner/2_254_106_53/2.txt",ios::in);
-    if(!infile2){
-        cout<<"not open!";
-        return 0;
-    }
-
-
-    int n=254,n1=106,n2=53;
-
-    //n列数,n1消元子的数量，n2消元子的数量
-
-    int *p=new int[n2];
-    int *pc=new int[n2];
-    for(int i=0;i<n2;i++)
-        p[i]=1;
-    int *record=new int[n];
-    int *r=new int[n];
-    for(int i=0;i<n;i++)
-        record[i]=0;
-
-    short ** arr1=new short*[n];
-    for(int i=0;i<n;i++)
-        arr1[i]=new short[n];
-
-    short ** arr2=new short*[n2];
-    for(int i=0;i<n2;i++)
-        arr2[i]=new short[n];
-
-
-    short ** A=new short*[n];
-    for(int i=0;i<n;i++)
-        A[i]=new short[n];
-
-    short ** B=new short*[n2];
-    for(int i=0;i<n2;i++)
-        B[i]=new short[n];
-
-    string temp;
-    int l=0;
-    while(getline(infile1,temp))
+    for(int k=0;k<Arr_size;k++)
     {
-        stringstream ss(temp);
-        int num;
-        ss>>num;
-        num=n-num-1;
-        record[num]=1;
-        arr1[num][num]=1;
-        int t;
-        while(!ss.eof())
+        for(int j=k+1;j<Arr_size;j++)
         {
-            ss>>t;
-            if(t<=0)
-                break;
-            arr1[num][n-t-1]=1;
+            A[k][j]/=A[k][k];
         }
-    }
-    infile1.close();
 
-    temp="";
-    while(getline(infile2,temp))
+        A[k][k]=1.0;
+
+        for(int i=k+1;i<Arr_size;i++)
+        {
+            for(int j=k+1;j<Arr_size;j++)
+            {
+                A[i][j]-=A[i][k]*A[k][j];
+            }
+
+            A[i][k]=0.0;
+        }
+
+    }
+}
+
+void Simd(float** A)
+{
+
+    for(int k=0;k<Arr_size;k++)
     {
-        stringstream ss(temp);
-        int num;
-        while(!ss.eof())
+        float32x4_t vt=vmovq_n_f32(A[k][k]);
+        int j;
+        for(j=k+1;j+4<=Arr_size;j+=4)
         {
-            ss>>num;
-            if(num<=0)
-                break;
-            arr2[l][n-num-1]=1;
-        }
-        l++;
-    }
-    infile2.close();
+            float32x4_t va=vld1q_f32(&A[k][j]);
 
+            va=vdivq_f32(va,vt);
+            vst1q_f32(&A[k][j],va);
+
+        }
+        for(j;j<Arr_size;j++)
+            A[k][j]/=A[k][k];
+        A[k][k]=1.0;
+
+        for(int i=k+1;i<Arr_size;i++)
+        {
+            float32x4_t vaik=vmovq_n_f32(A[i][k]);
+            for(j=k+1;j+4<=Arr_size;j+=4)
+            {
+                float32x4_t vakj=vld1q_f32(&A[k][j]);
+                float32x4_t vaij=vld1q_f32(&A[i][j]);
+                float32x4_t vx=vmulq_f32(vakj,vaik);
+                vaij=vsubq_f32(vaij,vx);
+                vst1q_f32(&A[i][j],vaij);
+
+            }
+            for(j;j<Arr_size;j++)
+                A[i][j]-=A[k][j]*A[i][k];
+            A[i][k]=0;
+        }
+    }
+}
+
+void Simd_Aligned(float** A)
+{
+    for(int k=0;k<Arr_size;k++)
+    {
+        float32x4_t vt=vmovq_n_f32(A[k][k]);
+        int j=k+1;
+
+        while(j%4!=0){
+            A[k][j]/=A[k][k];
+            j++;
+        }
+
+        for(;j+4<=Arr_size;j+=4)
+        {
+            float32x4_t va=vld1q_f32(&A[k][j]);
+
+            va=vdivq_f32(va,vt);
+            vst1q_f32(&A[k][j],va);
+
+        }
+        for(j;j<Arr_size;j++)
+            A[k][j]/=A[k][k];
+        A[k][k]=1.0;
+
+        for(int i=k+1;i<Arr_size;i++)
+        {
+            float32x4_t vaik=vmovq_n_f32(A[i][k]);
+            j=k+1;
+            while(j%4!=0){
+                A[i][j]-=A[k][j]*A[i][k];
+                j++;
+            }
+
+            for(;j+4<=Arr_size;j+=4)
+            {
+                float32x4_t vakj=vld1q_f32(&A[k][j]);
+                float32x4_t vaij=vld1q_f32(&A[i][j]);
+                float32x4_t vx=vmulq_f32(vakj,vaik);
+                vaij=vsubq_f32(vaij,vx);
+                vst1q_f32(&A[i][j],vaij);
+
+            }
+            for(j;j<Arr_size;j++)
+                A[i][j]-=A[k][j]*A[i][k];
+            A[i][k]=0;
+        }
+    }
+
+}
+
+void reset(float **A,float** B)
+{
+
+    for(int i=0;i<Arr_size;i++)
+        for(int j=0;j<Arr_size;j++)
+            B[i][j]=A[i][j];
+}
+void Run()
+{
+    cout<<"__________________________________"<<endl;
+    cout<<Arr_size<<endl;
+
+    float **Gauss_arr=new float*[Arr_size];
+    for(int i=0;i<Arr_size;i++)
+        Gauss_arr[i]=new float[Arr_size];
+    for(int i=0;i<Arr_size;i++)
+    {
+        for(int j=0;j<i;j++)
+            Gauss_arr[i][j]=0;
+        Gauss_arr[i][i]=1.0;
+        for(int j=i;j<Arr_size;j++)
+            Gauss_arr[i][j]=rand();
+    }
+    for(int k=0;k<Arr_size;k++)
+        for(int i=k+1;i<Arr_size;i++)
+            for(int j=0;j<Arr_size;j++)
+                Gauss_arr[i][j]+=Gauss_arr[k][j];
+
+    float **Copy_arr=new float*[Arr_size];
+    for(int i=0;i<Arr_size;i++)
+        Copy_arr[i]=new float[Arr_size];
+
+        float **Aligned_Gauss_arr;
+
+    Aligned_Gauss_arr=new  float*[Arr_size];
+    float* testArray[Arr_size];
+    for(int i=0;i<Arr_size;i++)
+       {
+            Aligned_Gauss_arr[i]=(float*)aligned_alloc(128,Arr_size*4);
+            testArray[i]=&Aligned_Gauss_arr[i][0];
+       }
+
+    for(int i=0;i<Arr_size;i++)
+        for(int j=0;j<Arr_size;j++)
+            Aligned_Gauss_arr[i][j]=Gauss_arr[i][j];
 
     double time=0;
     struct timeval tv_begin,tv_end;
-
     for(int i=0;i<20;i++){
-
-    reset(arr1,A,arr2,B,n,n2,record,r,p,pc);
-    gettimeofday(&tv_begin,NULL);
-    for(int i=0;i<n2;i++)
-    {
-        if(pc[i]==0)
-            continue;
-
-        int k=FindTheMax(B[i],n);
-        while(r[k])
-        {
-            XY(A[k],B[i],n);
-            k=FindTheMax(B[i],n);
-            if(k<0)
-	break;
-        }
-        pc[i]=0;
-        if(k<0)
-            continue;
-        r[k]=1;
-
-        for(int x=0;x<n;x++)
-            A[k][x]=B[i][x];
-
-    }
-
-    gettimeofday(&tv_end,NULL);
-    time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+        reset(Gauss_arr,Copy_arr);
+       gettimeofday(&tv_begin,NULL);
+        Serial(Copy_arr);
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
     cout<<time/20<<endl;
+
+    time=0;
+  for(int i=0;i<20;i++){
+        reset(Gauss_arr,Copy_arr);
+       gettimeofday(&tv_begin,NULL);
+        Simd(Copy_arr);
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+    }
+    cout<<time/20<<endl;
+
+
     time=0;
     for(int i=0;i<20;i++){
-
-    reset(arr1,A,arr2,B,n,n2,record,r,p,pc);
-    gettimeofday(&tv_begin,NULL);
-    for(int i=0;i<n2;i++)
-    {
-        if(pc[i]==0)
-            continue;
-
-        int k=FindTheMax(B[i],n);
-        while(r[k])
-        {
-            XY1(A[k],B[i],n);
-            k=FindTheMax(B[i],n);
-            if(k<0)
-	break;
-        }
-        pc[i]=0;
-        if(k<0)
-            continue;
-        r[k]=1;
-
-        for(int x=0;x<n;x++)
-            A[k][x]=B[i][x];
-    }
-
-    gettimeofday(&tv_end,NULL);
-    time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
+        reset(Gauss_arr,Copy_arr);
+       gettimeofday(&tv_begin,NULL);
+        Simd_Aligned(Copy_arr);
+        gettimeofday(&tv_end,NULL);
+        time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
     }
     cout<<time/20<<endl;
 
-
-    for(int i=0;i<20;i++){
-
-    reset(arr1,A,arr2,B,n,n2,record,r,p,pc);
-    gettimeofday(&tv_begin,NULL);
-    for(int i=0;i<n2;i++)
+    for(int i=0;i<Arr_size;i++)
+        free((void*)testArray[i]);
+}
+int main()
+{
+    for(int i=0;i<40;i++)
     {
-        if(pc[i]==0)
-            continue;
+        Run();
 
-        int k=FindTheMax(B[i],n);
-        while(r[k])
-        {
-            XY2(A[k],B[i],n);
-            k=FindTheMax(B[i],n);
-            if(k<0)
-	break;
-        }
-        pc[i]=0;
-        if(k<0)
-            continue;
-        r[k]=1;
-
-        for(int x=0;x<n;x++)
-            A[k][x]=B[i][x];
-
+        Arr_size+=16;
     }
-
-    gettimeofday(&tv_end,NULL);
-    time+=(tv_end.tv_sec-tv_begin.tv_sec)*1000.0+(tv_end.tv_usec-tv_begin.tv_usec)/1000.0;
-    }
-    cout<<time/20<<endl;
-    time=0;
-    return 0;
 }

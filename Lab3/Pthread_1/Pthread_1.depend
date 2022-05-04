@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1650782226 source:f:\并行\parallel-programming\lab3\pthread_1\main.cpp
+1650788950 source:f:\并行\parallel-programming\lab3\pthread_1\main.cpp
 	<iostream>
 	<pthread.h>
 	<semaphore.h>
