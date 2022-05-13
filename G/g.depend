@@ -5,3 +5,18 @@
 	<string>
 	<sstream>
 
+1651805030 source:f:\并行\parallel-programming\g\main.cpp
+	"Grobner_Matrix.h"
+	<iostream>
+	<fstream>
+	<sstream>
+	<pthread.h>
+	<ctime>
+	<cstdlib>
+	<windows.h>
+	<time.h>
+
+1651805030 f:\并行\parallel-programming\g\grobner_matrix.h
+	<vector>
+	<iostream>
+
